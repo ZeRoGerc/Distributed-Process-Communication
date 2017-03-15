@@ -1,0 +1,14 @@
+[package]
+name = "process_communication"
+version = "0.1.0"
+authors = ["Uladzislau Sazanovich <zerogerc@gmail.com>"]
+
+[dependencies.logger]
+git = "https://github.com/iron/logger.git"
+
+[dependencies]
+hyper="0.9.0"
+iron="0.4.0"
+rustc-serialize="0.3"
+router="0.4.0"
+rand="0.3"
