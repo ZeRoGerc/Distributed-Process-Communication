@@ -8,39 +8,61 @@ use rand::Rng;
 use rustc_serialize::json;
 use router::Router;
 use utils::JsonResponse;
+use utils::JsonRequest;
+use std::io::Read;
+use utils::ProcessInfoProvider;
+use utils::LamportClock;
+use std::sync::RwLock;
+use process::*;
 
 pub struct ProcessServer {
-    pub port: u16,
+  pub ip: String,
+  pub port: u16
 }
 
 impl ProcessServer {
-    pub fn start(&self) -> Listening {
-        let mut router = Router::new();
-        router.get("/", handler, "index");
 
-        Iron::new(router)
-          .http(("localhost", self.port))
-          .expect("Unable to start server")
-    }
+  pub fn new(ip: &str, port: u16) -> ProcessServer {
+
+    let server = ProcessServer { 
+      ip: ip.to_owned(),
+      port: port
+    };
+
+    server
+  }
+
+  pub fn start(&self) -> Listening {
+    let mut router = Router::new();
+
+    router.post("/", post_handler, "post");
+
+    println!("Server is starting");
+
+    Iron::new(router)
+      .http((self.ip.as_str(), self.port))
+      .expect("Unable to start server")
+  }
 }
 
-fn handler(req: &mut Request) -> IronResult<Response> {
-  let response = JsonResponse { response: pick_response("Ulad".to_string()) };
-  let out = json::encode(&response).unwrap();
+fn post_handler(req: &mut Request) -> IronResult<Response> {
+    let mut payload = String::new();
 
-  let content_type = "application/json".parse::<Mime>().unwrap();
-  Ok(Response::with((content_type, status::Ok, out)))
-}
+    req.body.read_to_string(&mut payload).unwrap();
 
-fn pick_response(name: String) -> String {
-  let num = rand::thread_rng().gen_range(1, 4);
+    let request: JsonRequest = json::decode(payload.as_str()).unwrap();
 
-  let response = match num {
-    1 => format!("Hello {}!", name),
-    2 => format!("Did you see that ludicrous display last night, {}?", name),
-    3 => format!("Nice weather for ducks, isn't it {}", name),
-    _ => format!("")     // match is exhaustive
-  };
+    let mut time;
+    {
+      let mut temp = CLOCK.write().unwrap();
+      time = temp.applyAndIncrement(request.time);
+    };
 
-  response.to_string()
-}
+    println!("received from:{} msg:{} time:{}", request.id, request.msg, time);
+
+    let response = JsonResponse { response: "ok".to_owned() };
+    let out = json::encode(&response).unwrap();
+
+    let content_type = "application/json".parse::<Mime>().unwrap();
+    Ok(Response::with((content_type, status::Ok, out)))
+  }

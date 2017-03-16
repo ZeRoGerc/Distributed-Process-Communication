@@ -1,34 +1,47 @@
+#[macro_use]
+extern crate lazy_static;
+extern crate regex;
 extern crate process_communication;
 
 use process_communication::server::ProcessServer;
 use process_communication::client::ProcessClient;
+use process_communication::utils::*;
+use process_communication::process::*;
 use std::env;
+use std::sync::RwLock;
 use std::io;
+use regex::Regex;
 
-fn parse_and_send(input: String) {
-    let port: u16 = match input.trim().parse() {
-        Ok(num) => num,
-        Err(_) => {
-            println!("Not a valid port");
-            return;
-        }
-    };
+lazy_static! {
+    static ref CONSOLE_DELIMETERS: Regex = Regex::new(r"\s+|\s*:\s*").unwrap();
+}
 
-    println!("Sending message on port: {}", port);
+fn parse_and_send(process: &Process, input: String) {
+    let parts: Vec<&str> = CONSOLE_DELIMETERS.split(input.trim()).collect();
 
-    let client = ProcessClient{};
-    let message = String::new();
-    client.sendMessage(port, message); 
+    if parts[0].eq("send") && parts[1].eq("to") && parts[3].eq("msg") {
+        let id: u32 = match parts[2].parse() {
+            Ok(num) => num,
+            Err(_) => {
+                println!("Invalid request");
+                return
+            },
+        };
+
+        process.sendMessage(id, String::from(parts[4]));
+    } else {
+        println!("Invalid request");
+    }
 }
 
 fn main() {
-    let mut port: u16 = 8080;
+    let mut id: u32 = 0;
     for (num, argument) in env::args().enumerate() {
         if num == 0 { 
             continue; 
         }
         
-        port = match argument.trim().parse() {
+        id = match argument.trim().parse() {
             Ok(num) => num,
             Err(_) => {
                 println!("First argument must be a valid port");
@@ -37,10 +50,8 @@ fn main() {
         }
     }
 
-    println!("Server running on port: {}", port);
-
-    let ser = ProcessServer {port : port};
-    let listener = ser.start();
+    let process = Process::new(id);
+    let listener = process.startProcess();
 
     loop {
         let mut input = String::new();
@@ -53,6 +64,6 @@ fn main() {
             break;
         }
 
-        parse_and_send(input);
+        parse_and_send(&process, input);
     }
 }
