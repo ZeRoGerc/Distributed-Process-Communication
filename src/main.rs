@@ -3,21 +3,17 @@ extern crate lazy_static;
 extern crate regex;
 extern crate process_communication;
 
-use process_communication::server::ProcessServer;
-use process_communication::client::ProcessClient;
-use process_communication::utils::*;
 use process_communication::process::*;
 use std::env;
-use std::sync::RwLock;
 use std::io;
 use regex::Regex;
 
 lazy_static! {
-    static ref CONSOLE_DELIMETERS: Regex = Regex::new(r"\s+|\s*:\s*").unwrap();
+    static ref DELIMETERS: Regex = Regex::new(r"\s+|\s*:\s*").unwrap();
 }
 
 fn parse_and_send(process: &Process, input: String) {
-    let parts: Vec<&str> = CONSOLE_DELIMETERS.split(input.trim()).collect();
+    let parts: Vec<&str> = DELIMETERS.split(input.trim()).collect();
 
     if parts[0].eq("send") && parts[1].eq("to") && parts[3].eq("msg") {
         let id: u32 = match parts[2].parse() {

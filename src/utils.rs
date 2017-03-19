@@ -5,6 +5,10 @@ use std::cmp::max;
 use std::collections::HashMap;
 use regex::Regex;
 
+lazy_static! {
+    static ref DELIMITERS: Regex = Regex::new(r"[:=]").unwrap();
+}
+
 #[derive(RustcDecodable, RustcEncodable)]
 pub struct JsonRequest {
   pub id: u32,
@@ -43,8 +47,7 @@ pub struct ProcessInfo {
 }
 
 pub struct ProcessInfoProvider {
-  process_map: HashMap<u32, ProcessInfo>,
-  delimiters: Regex
+  process_map: HashMap<u32, ProcessInfo>
 }
 
 impl ProcessInfoProvider {
@@ -54,8 +57,7 @@ impl ProcessInfoProvider {
 
   pub fn new() -> ProcessInfoProvider {
     let mut provider = ProcessInfoProvider{ 
-      process_map: HashMap::new(),
-      delimiters: Regex::new(r"[:=]").unwrap()
+      process_map: HashMap::new()
     };
     fill_from_file(&mut provider);
     provider
@@ -69,7 +71,7 @@ fn fill_from_file(provider: &mut ProcessInfoProvider ) {
   let lines = reader.lines();
   for (id, line) in lines.enumerate() {
     let s = line.unwrap();
-    let parts: Vec<&str> = provider.delimiters.split(&s).collect();
+    let parts: Vec<&str> = DELIMITERS.split(&s).collect();
 
     let port: u16 = parts[2].trim()
       .parse()
@@ -77,20 +79,7 @@ fn fill_from_file(provider: &mut ProcessInfoProvider ) {
 
     provider.process_map.insert(
       (id + 1) as u32, 
-      ProcessInfo{ ip : parts[1].to_string(), port: port }
+      ProcessInfo{ ip : parts[1].to_string(), port : port }
     );
-  }
-
-  print_cfg(provider);
-}
-
-fn print_cfg(provider: &mut ProcessInfoProvider) {
-  for id in provider.process_map.keys() {
-    match provider.process_map.get(id) {
-      Some(info) => {
-        println!("process_id: {}, ip: {:?}, port: {}", id, info.ip, info.port);
-      },
-      None => {},
-    }
   }
 }

@@ -8,6 +8,16 @@ lazy_static! {
     pub static ref CLOCK: RwLock<LamportClock> = RwLock::new(LamportClock::new());
 }
 
+pub fn incrementAndGetTime() -> u32 {
+    let mut temp = CLOCK.write().unwrap();
+    temp.incrementAndGet()
+}
+
+pub fn applyAndIncrementTime(other_time: u32) -> u32 {
+    let mut temp = CLOCK.write().unwrap();
+    temp.applyAndIncrement(other_time)
+}
+
 pub struct Process {
     provider: ProcessInfoProvider,
     server: ProcessServer,

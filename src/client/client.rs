@@ -1,6 +1,5 @@
 extern crate hyper;
 
-
 use rustc_serialize::json;
 use hyper::*;
 use std::io::Read;
@@ -17,20 +16,14 @@ impl ProcessClient {
     }
 
     pub fn sendMessage(&self, ip: &str, port: u16, message: &str) {
-        println!("Sending message to port:{} ip:{}", port, ip);
-        let mut time;
-        {
-            let mut temp = CLOCK.write().unwrap();
-            time = temp.incrementAndGet();
-        }
         let request = JsonRequest {
             id : self.id,
-            time : time,
+            time : incrementAndGetTime(),
             msg : message.to_string()
         };
 
         let client = Client::new();
-        let mut res = client.post(format!("http://localhost:{}/", port).as_str())
+        let mut res = client.post(format!("http://{}:{}/", ip, port).as_str())
             .body(json::encode(&request).unwrap().as_str())
             .send()
             .unwrap();

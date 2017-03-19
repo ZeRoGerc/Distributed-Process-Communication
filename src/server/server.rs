@@ -23,18 +23,14 @@ pub struct ProcessServer {
 impl ProcessServer {
 
   pub fn new(ip: &str, port: u16) -> ProcessServer {
-
-    let server = ProcessServer { 
+    ProcessServer { 
       ip: ip.to_owned(),
       port: port
-    };
-
-    server
+    }
   }
 
   pub fn start(&self) -> Listening {
     let mut router = Router::new();
-
     router.post("/", post_handler, "post");
 
     println!("Server is starting");
