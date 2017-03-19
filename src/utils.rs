@@ -30,12 +30,12 @@ impl LamportClock {
     LamportClock { time: 0 }
   }
 
-  pub fn incrementAndGet(&mut self) -> u32 {
+  pub fn increment_and_get(&mut self) -> u32 {
     self.time += 1;
     self.time
   }
 
-  pub fn applyAndIncrement(&mut self, other_time: u32) -> u32 {
+  pub fn apply_and_increment(&mut self, other_time: u32) -> u32 {
     self.time = max(self.time, other_time) + 1;
     self.time
   }
@@ -51,7 +51,7 @@ pub struct ProcessInfoProvider {
 }
 
 impl ProcessInfoProvider {
-  pub fn getById(&self, id: u32) -> Option<&ProcessInfo> {
+  pub fn get_by_id(&self, id: u32) -> Option<&ProcessInfo> {
     self.process_map.get(&id)
   }
 
@@ -66,7 +66,7 @@ impl ProcessInfoProvider {
 
 fn fill_from_file(provider: &mut ProcessInfoProvider ) {
   let f = File::open("process.cfg").expect("Could not open cfg file process.cfg");
-  let mut reader = BufReader::new(f);
+  let reader = BufReader::new(f);
 
   let lines = reader.lines();
   for (id, line) in lines.enumerate() {

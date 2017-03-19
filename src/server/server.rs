@@ -4,15 +4,11 @@ use iron::prelude::*;
 use iron::status;
 use iron::mime::Mime;
 use iron::Listening;
-use rand::Rng;
 use rustc_serialize::json;
 use router::Router;
 use utils::JsonResponse;
 use utils::JsonRequest;
 use std::io::Read;
-use utils::ProcessInfoProvider;
-use utils::LamportClock;
-use std::sync::RwLock;
 use process::*;
 
 pub struct ProcessServer {
@@ -48,11 +44,8 @@ fn post_handler(req: &mut Request) -> IronResult<Response> {
 
     let request: JsonRequest = json::decode(payload.as_str()).unwrap();
 
-    let mut time;
-    {
-      let mut temp = CLOCK.write().unwrap();
-      time = temp.applyAndIncrement(request.time);
-    };
+
+    let time = apply_and_increment_time(request.time);
 
     println!("received from:{} msg:{} time:{}", request.id, request.msg, time);
 

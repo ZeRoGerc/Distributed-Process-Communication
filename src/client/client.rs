@@ -15,10 +15,10 @@ impl ProcessClient {
         ProcessClient{ id : id }
     }
 
-    pub fn sendMessage(&self, ip: &str, port: u16, message: &str) {
+    pub fn send_message(&self, ip: &str, port: u16, message: &str) {
         let request = JsonRequest {
             id : self.id,
-            time : incrementAndGetTime(),
+            time : increment_and_get_time(),
             msg : message.to_string()
         };
 

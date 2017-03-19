@@ -24,7 +24,7 @@ fn parse_and_send(process: &Process, input: String) {
             },
         };
 
-        process.sendMessage(id, String::from(parts[4]));
+        process.send_message(id, String::from(parts[4]));
     } else {
         println!("Invalid request");
     }
@@ -47,7 +47,7 @@ fn main() {
     }
 
     let process = Process::new(id);
-    let listener = process.startProcess();
+    let listener = process.start_process();
 
     loop {
         let mut input = String::new();
